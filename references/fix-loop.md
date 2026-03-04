@@ -20,7 +20,9 @@ The fix loop is what separates "we found bugs" from "we proved the bugs are gone
 
 ---
 
-## The Three-Layer Test Validation
+## The Four-Layer Test Validation (v2.0)
+
+> **v2.0 change:** Added Layer 4 (invariant regression) to ensure fixes don't break protocol invariants.
 
 After every fix, run tests in this exact order:
 
@@ -44,7 +46,14 @@ forge test --match-contract NexusAuditValidation
 The attack PoC tests must now FAIL (the attack no longer works).
 The FIXED regression tests must PASS (correct behavior confirmed).
 
-**All 3 layers green = finding CLOSED.**
+### Layer 4 — Invariant Regression (NEW v2.0)
+```bash
+forge test --match-test invariant_ --fuzz-runs 1000
+```
+All invariant tests from Phase 6B must still pass after the fix.
+If an invariant breaks → the fix introduced a new vulnerability.
+
+**All 4 layers green = finding CLOSED.**
 
 ---
 
@@ -120,11 +129,11 @@ require(operator != address(0), "WasiAI: zero operator");
 
 Use this in the final report:
 
-| Finding | Severity | Fix Applied | Layer 1 | Layer 2 | Layer 3 | Status |
-|---|---|---|---|---|---|---|
-| NA-M01 | MEDIUM | Remove lastOperatorActivity from performUpkeep | ✅ | ✅ | ✅ | CLOSED |
-| NA-H02 | HIGH | require(amount == pricePerCall) | ✅ | ✅ | ✅ | CLOSED |
-| NA-H01 | HIGH | None (architectural) | N/A | N/A | N/A | KNOWN LIMITATION |
+| Finding | Severity | Fix Applied | Layer 1 | Layer 2 | Layer 3 | Layer 4 | Status |
+|---|---|---|---|---|---|---|---|
+| NA-M01 | MEDIUM | Remove lastOperatorActivity from performUpkeep | ✅ | ✅ | ✅ | ✅ | CLOSED |
+| NA-H02 | HIGH | require(amount == pricePerCall) | ✅ | ✅ | ✅ | ✅ | CLOSED |
+| NA-H01 | HIGH | None (architectural) | N/A | N/A | N/A | N/A | KNOWN LIMITATION |
 
 ---
 
@@ -138,6 +147,7 @@ Use this in the final report:
 - 7 PoC tests INVERTED (7 attacks now revert correctly)
 - 7 FIXED regression tests PASSING
 - 2 KNOWN LIMITATIONS documented (NA-H01 insolvency, NA-M03 fee sandwich)
+- Invariant tests passing (solvency, fee bounds, supply consistency)
 - 78 total tests, 0 failures
 - Contract v7 ready for mainnet consideration
 
